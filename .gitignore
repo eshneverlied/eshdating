@@ -6,3 +6,6 @@ __pycache__/
 migrations/versions/*
 *.session
 *.session-journal
+.DS_Store
+.vscode/
+.idea/

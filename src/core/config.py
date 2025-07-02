@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
     ACCESS_TOKEN_EXPIRE_MINUTES: int
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
 
     class Config:
         env_file = ".env"

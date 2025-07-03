@@ -39,7 +39,7 @@ app.include_router(auth_router)
 
 @app.get("/")
 async def index(request: Request):
-    return templates.TemplateResponse("test_auth.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/dashboard")
 async def dashboard(request: Request, user=Depends(get_current_user)):

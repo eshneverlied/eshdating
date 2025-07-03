@@ -5,8 +5,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     JWT_SECRET_KEY: str  # ⬅️ добавляем эту строку
     DATABASE_URL: str
-    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:8000"]
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
 

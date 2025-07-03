@@ -1,41 +1,45 @@
-from fastapi import Depends, HTTPException, Request
-from src.domain.services.user_service import UserService
-from src.infrastructure.database.repositories.user_repository import UserRepository
+
+
+
+
+
+from fastapi import Request, HTTPException, Depends
+from src.infrastructure.database.repositories.user_repository import SQLAlchemyUserRepository
 from src.infrastructure.database.session import get_db_session
-from authx import AuthX
 from passlib.context import CryptContext
-import secrets
+from src.domain.services.user_service import UserService
+from authx import TokenPayload
+from src.core.auth import authx  # Импортируем уже настроенный AuthX
 
-authx = AuthX()
-
+# Контекст для хеширования паролей
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_user_service(session=Depends(get_db_session)) -> UserService:
-    return UserService(UserRepository(session), authx=authx, pwd_context=pwd_context)
+    """
+    Создаем сервис пользователей
+    """
+    return UserService(
+        SQLAlchemyUserRepository(session),
+        authx=authx,
+        pwd_context=pwd_context
+    )
 
-def get_current_user(request: Request):  # Remove Depends()
-    token = request.cookies.get("access_token")
-    if not token:
-        raise HTTPException(status_code=401, detail="Access token not found in cookies")
+async def get_current_user(
+    payload: TokenPayload = Depends(authx.access_token_required),  # проверяет access-токен и возвращает его payload
+    user_service: UserService = Depends(get_user_service)
+):
+    """
+    Проверяет токен пользователя и возвращает информацию о текущем пользователе.
+    """
+    # После успешной верификации токена мы получаем объект TokenPayload
+    # Поле `sub` содержит UID пользователя (т.к. при создании токена мы передавали uid=str(user.id))
     try:
-        user = authx.decode_token(token)
-        if not user:
-            raise HTTPException(status_code=401, detail="Invalid access token")
-        return user
+        user_id = payload.sub
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        # Получаем пользователя из базы данных по ID
+        user = await user_service.get_user_by_id(int(user_id))
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Invalid access token: {str(e)}")
-
-def get_refresh_token(request: Request):  # Remove Depends()
-    token = request.cookies.get("refresh_token")
-    if not token:
-        raise HTTPException(status_code=401, detail="Refresh token not found in cookies")
-    try:
-        payload = authx.decode_token(token)
-        if not payload:
-            raise HTTPException(status_code=401, detail="Invalid refresh token")
-        return payload
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Invalid refresh token: {str(e)}")
-
-def get_csrf_token():
-    return secrets.token_hex(16)
+        raise HTTPException(status_code=401, detail=f"Unauthorized: {str(e)}")
+    # Возвращаем только необходимые данные о пользователе
+    return {"id": user.id, "email": user.email}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Вход</title>
+    <style>
+        /* Простой стиль для скрытия секции регистрации по умолчанию */
+        #register-section { display: none; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div id="login-section">
+        <h1>Вход</h1>
+        <form id="login-form">
+            <label for="login-email">Email:</label><br />
+            <input type="email" id="login-email" name="email" required /><br />
+            <label for="login-password">Пароль:</label><br />
+            <input type="password" id="login-password" name="password" required /><br />
+            <button type="submit">Войти</button>
+        </form>
+        <div id="login-error" class="error"></div>
+        <p>Нет аккаунта? <a href="#" id="show-register">Зарегистрироваться</a></p>
+    </div>
+    <div id="register-section">
+        <h1>Регистрация</h1>
+        <form id="register-form">
+            <label for="reg-email">Email:</label><br />
+            <input type="email" id="reg-email" name="email" required /><br />
+            <label for="reg-password">Пароль:</label><br />
+            <input type="password" id="reg-password" name="password" required /><br />
+            <button type="submit">Создать аккаунт</button>
+        </form>
+        <div id="register-error" class="error"></div>
+        <p>Уже есть аккаунт? <a href="#" id="show-login">Войти</a></p>
+    </div>
+    <!-- Подключение основного JS (должен быть доступен по указанному пути в StaticFiles) -->
+    <script src="/static/main.js"></script>
+</body>
+</html>

@@ -23,8 +23,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from src.domain.entities.user import User
 from src.infrastructure.database.models.user import UserModel
-import datetime
-class UserRepository:
+from datetime import datetime
+
+class SQLAlchemyUserRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -52,15 +53,17 @@ class UserRepository:
             )
         return None
 
-    async def create(self, email: str, password_hash: str) -> User:
+    async def create(self, user: User) -> User:
+        """Создание пользователя из объекта User"""
         user_model = UserModel(
-            email=email,
-            password_hash=password_hash,
-            created_at=datetime.utcnow(),
+            email=user.email,
+            password_hash=user.password_hash,
+            created_at=user.created_at,
         )
         self.session.add(user_model)
         await self.session.commit()
         await self.session.refresh(user_model)
+
         return User(
             id=user_model.id,
             email=user_model.email,

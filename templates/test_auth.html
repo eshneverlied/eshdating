@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dating Portal - AuthX Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .form-section h3 {
+            margin-top: 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="email"], input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 2px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-success { background: #28a745; }
+        .status-error { background: #dc3545; }
+        .status-info { background: #17a2b8; }
+
+        .cookie-display {
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .api-config {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            button {
+                width: 100%;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💖 Dating Portal - AuthX Тест</h1>
+
+        <!-- Конфигурация API -->
+        <div class="api-config">
+            <strong>⚙️ Конфигурация API:</strong>
+            <div class="form-group" style="margin-top: 10px;">
+                <label for="api-base">Базовый URL API:</label>
+                <input type="text" id="api-base" value="http://localhost:8000/api/v1" placeholder="http://localhost:8000/api/v1">
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Секция регистрации -->
+            <div class="form-section">
+                <h3>📝 Регистрация</h3>
+                <div class="form-group">
+                    <label for="reg-email">Email:</label>
+                    <input type="email" id="reg-email" placeholder="example@mail.com">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Пароль:</label>
+                    <input type="password" id="reg-password" placeholder="Введите пароль">
+                </div>
+                <button onclick="register()">Зарегистрироваться</button>
+            </div>
+
+            <!-- Секция входа -->
+            <div class="form-section">
+                <h3>🔐 Вход</h3>
+                <div class="form-group">
+                    <label for="login-email">Email:</label>
+                    <input type="email" id="login-email" placeholder="example@mail.com">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Пароль:</label>
+                    <input type="password" id="login-password" placeholder="Введите пароль">
+                </div>
+                <button onclick="login()">Войти</button>
+            </div>
+        </div>
+
+        <!-- Секция тестирования -->
+        <div class="form-section">
+            <h3>🧪 Тестирование AuthX</h3>
+            <button onclick="getMe()">👤 Мой профиль</button>
+            <button onclick="accessProtected()">🛡️ Защищенный маршрут</button>
+            <button onclick="refreshToken()">🔄 Обновить токен</button>
+            <button onclick="logout()">🚪 Выйти</button>
+            <button onclick="showCookies()">🍪 Показать cookies</button>
+            <button onclick="clearCookies()">🗑️ Очистить cookies</button>
+            <button onclick="clearResponse()">🧹 Очистить ответ</button>
+            <button onclick="testAll()">🚀 Полный тест</button>
+        </div>
+
+        <!-- Область ответов -->
+        <div id="response"></div>
+
+        <!-- Отображение cookies -->
+        <div class="cookie-display" id="cookie-display"></div>
+    </div>
+
+    <script>
+        let isLoading = false;
+
+        function getApiBase() {
+            return document.getElementById('api-base').value || 'http://localhost:8000/api/v1';
+        }
+
+        function showResponse(data, type = 'info') {
+            const responseDiv = document.getElementById('response');
+            const statusClass = type === 'success' ? 'status-success' :
+                               type === 'error' ? 'status-error' : 'status-info';
+
+            const timestamp = new Date().toLocaleString('ru-RU');
+
+            responseDiv.className = `response ${type}`;
+            responseDiv.innerHTML = `
+                <div class="timestamp">${timestamp}</div>
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <span class="status-indicator ${statusClass}"></span>
+                    <strong>${type.toUpperCase()}</strong>
+                </div>
+                ${JSON.stringify(data, null, 2)}
+            `;
+        }
+
+        function updateCookieDisplay() {
+            const cookieDiv = document.getElementById('cookie-display');
+            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+                const [name, value] = cookie.trim().split('=');
+                if (name) acc[name] = value || '';
+                return acc;
+            }, {});
+
+            cookieDiv.innerHTML = `
+                <strong>🍪 Текущие Cookies:</strong><br>
+                ${Object.keys(cookies).length > 0 ?
+                    Object.entries(cookies).map(([key, value]) =>
+                        `<strong>${key}:</strong> ${value.substring(0, 100)}${value.length > 100 ? '...' : ''}`
+                    ).join('<br>') :
+                    'Нет cookies'
+                }
+            `;
+        }
+
+        function setLoading(loading) {
+            isLoading = loading;
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.disabled = loading;
+            });
+
+            if (loading) {
+                document.body.classList.add('loading');
+            } else {
+                document.body.classList.remove('loading');
+            }
+        }
+
+        async function makeRequest(url, method = 'GET', body = null) {
+            if (isLoading) return;
+
+            setLoading(true);
+
+            try {
+                const options = {
+                    method,
+                    credentials: 'include', // Важно для работы с cookies
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                console.log(`Making ${method} request to ${url}`, body ? body : '');
+
+                const response = await fetch(url, options);
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    data = { message: 'Ответ не содержит JSON', raw: await response.text() };
+                }
+
+                if (response.ok) {
+                    showResponse({
+                        status: response.status,
+                        data: data
+                    }, 'success');
+                } else {
+                    showResponse({
+                        status: response.status,
+                        statusText: response.statusText,
+                        error: data
+                    }, 'error');
+                }
+
+                updateCookieDisplay();
+                return { response, data };
+            } catch (error) {
+                showResponse({
+                    error: error.message,
+                    type: 'Network Error',
+                    stack: error.stack
+                }, 'error');
+                return { error };
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function register() {
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            if (!email || !password) {
+                showResponse({ error: 'Заполните все поля для регистрации' }, 'error');
+                return;
+            }
+
+            const result = await makeRequest(`${getApiBase()}/auth/register`, 'POST', {
+                email,
+                password
+            });
+
+            if (result.response?.ok) {
+                // Очищаем поля после успешной регистрации
+                document.getElementById('reg-email').value = '';
+                document.getElementById('reg-password').value = '';
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showResponse({ error: 'Заполните все поля для входа' }, 'error');
+                return;
+            }
+
+            const result = await makeRequest(`${getApiBase()}/auth/login`, 'POST', {
+                email,
+                password
+            });
+
+            if (result.response?.ok) {
+                // Очищаем поля после успешного входа
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+            }
+        }
+
+        async function getMe() {
+            await makeRequest(`${getApiBase()}/auth/me`);
+        }
+
+        async function accessProtected() {
+            await makeRequest(`${getApiBase()}/auth/protected`);
+        }
+
+        async function refreshToken() {
+            await makeRequest(`${getApiBase()}/auth/refresh`, 'POST');
+        }
+
+        async function logout() {
+            const result = await makeRequest(`${getApiBase()}/auth/logout`, 'POST');
+            if (result.response?.ok) {
+                // Очищаем поля формы после выхода
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+                document.getElementById('reg-email').value = '';
+                document.getElementById('reg-password').value = '';
+                updateCookieDisplay();
+            }
+        }
+
+        function showCookies() {
+            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+                const [name, value] = cookie.trim().split('=');
+                if (name) acc[name] = value || '';
+                return acc;
+            }, {});
+
+            showResponse({
+                message: 'Текущие cookies',
+                cookies: cookies,
+                count: Object.keys(cookies).length
+            }, 'info');
+        }
+
+        function clearCookies() {
+            const cookies = document.cookie.split(';');
+            cookies.forEach(cookie => {
+                const [name] = cookie.trim().split('=');
+                if (name) {
+                    // Удаляем cookie для разных путей и доменов
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;`;
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.localhost;`;
+                }
+            });
+
+            showResponse({ message: 'Cookies очищены' }, 'info');
+            updateCookieDisplay();
+        }
+
+        function clearResponse() {
+            document.getElementById('response').innerHTML = '';
+            document.getElementById('cookie-display').innerHTML = '';
+        }
+
+        async function testAll() {
+            showResponse({ message: 'Начинаем полный тест AuthX...' }, 'info');
+
+            // Очищаем cookies перед тестом
+            clearCookies();
+
+            const testEmail = 'test@example.com';
+            const testPassword = 'testpassword123';
+
+            // Заполняем поля
+            document.getElementById('reg-email').value = testEmail;
+            document.getElementById('reg-password').value = testPassword;
+
+            try {
+                // 1. Регистрация
+                showResponse({ step: 1, action: 'Регистрация пользователя...' }, 'info');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await register();
+
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // 2. Вход
+                document.getElementById('login-email').value = testEmail;
+                document.getElementById('login-password').value = testPassword;
+
+                showResponse({ step: 2, action: 'Вход в систему...' }, 'info');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await login();
+
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // 3. Получение профиля
+                showResponse({ step: 3, action: 'Получение профиля...' }, 'info');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await getMe();
+
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // 4. Тест защищенного маршрута
+                showResponse({ step: 4, action: 'Тест защищенного маршрута...' }, 'info');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await accessProtected();
+
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // 5. Обновление токена
+                showResponse({ step: 5, action: 'Обновление токена...' }, 'info');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await refreshToken();
+
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // 6. Выход
+                showResponse({ step: 6, action: 'Выход из системы...' }, 'info');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await logout();
+
+                showResponse({
+                    message: 'Полный тест завершен!',
+                    status: 'success',
+                    steps_completed: 6
+                }, 'success');
+
+            } catch (error) {
+                showResponse({
+                    error: 'Ошибка при выполнении полного теста',
+                    details: error.message
+                }, 'error');
+            }
+        }
+
+        // Обновляем отображение cookies при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCookieDisplay();
+
+            // Добавляем обработчики Enter для форм
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const activeElement = document.activeElement;
+
+                    if (activeElement.id === 'reg-email' || activeElement.id === 'reg-password') {
+                        register();
+                    } else if (activeElement.id === 'login-email' || activeElement.id === 'login-password') {
+                        login();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

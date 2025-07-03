@@ -1,171 +1,105 @@
-# from fastapi import APIRouter, HTTPException, Depends,status
-# from src.domain.services.user_service import UserService
-# from src.presentation.schemas.user import UserCreate, User, UserLogin, Token
-# from src.core.dependencies import get_user_service
-# from fastapi.responses import JSONResponse
-# router = APIRouter()
 
-# @router.post("/register", response_model=User)
-# async def register_user(user_data: UserCreate, user_service: UserService = Depends(get_user_service)):
-#     try:
-#         user = await user_service.register(user_data.email, user_data.password)
-#         return user
-#     except ValueError as e:
-#         raise HTTPException(status_code=400, detail=str(e))
 
-# @router.post("/login", response_model=Token)
-# async def login_user(user_data: UserLogin, user_service: UserService = Depends(get_user_service)):
-#     try:
-#         token = await user_service.login(user_data.email, user_data.password)
-#         return token
-#     except HTTPException as e:
-#         raise e
 
-# @router.post("/logout", status_code=200, tags=["Auth"])
-# async def logout_user():
-#     """
-#     Информирует клиент, что токен нужно удалить
-#     !!!ПЕРЕДЕЛАТЬ С REDIS!!!
-#     """
-#     return JSONResponse(
-#         content={"message": "Successfully logged out. Please delete your token on the client side."},
-#         status_code=status.HTTP_200_OK
-#     )
+
+
+
+
+
 
 from fastapi import APIRouter, Depends, Response, HTTPException, Request
-from src.core.dependencies import get_user_service, get_current_user, get_refresh_token, get_csrf_token
+from src.core.dependencies import get_user_service, get_current_user
 from src.domain.services.user_service import UserService
-from src.presentation.schemas.user import UserCreate, UserLogin, Token, User
+from src.presentation.schemas.user import UserCreate, UserLogin
 from src.core.config import settings
+from src.core.auth import authx
+from authx import RequestToken, TokenPayload
 
-router = APIRouter(tags=["Auth"])
+router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
-@router.post("/register", response_model=User)
+@router.post("/register")
 async def register_user(
     user_data: UserCreate,
     response: Response,
-    request: Request,
     user_service: UserService = Depends(get_user_service),
 ):
-    csrf_token = request.headers.get("X-CSRF-Token") or get_csrf_token()
-    response.set_cookie(
-        key="csrf_token",
-        value=csrf_token,
-        httponly=False,
-        secure=False,  # True in production
-        samesite="lax",
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/",
-        domain=None,
-    )
-    user = await user_service.register(user_data.email, user_data.password)
-    access_token = user_service.authx.create_access_token(
-        uid=str(user.id),
-        additional_data={"email": user.email},
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
-    refresh_token = user_service.authx.create_refresh_token(
-        uid=str(user.id),
-        additional_data={"email": user.email},
-        expires_in=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-    )
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=False,  # True in production
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
-        domain=None,
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=False,  # True in production
-        samesite="lax",
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/",
-        domain=None,
-    )
-    return user
+    """Регистрация нового пользователя"""
+    try:
+        user = await user_service.register(user_data.email, user_data.password)
+        # Создаем JWT токены
+        access_token = authx.create_access_token(uid=str(user.id))
+        refresh_token = authx.create_refresh_token(uid=str(user.id))
+        # Устанавливаем токены в cookies с помощью методов AuthX
+        authx.set_access_cookies(access_token, response)
+        authx.set_refresh_cookies(refresh_token, response)
+        return {
+            "message": "Регистрация прошла успешно",
+            "user": {"id": user.id, "email": user.email}
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/login", response_model=Token)
+@router.post("/login")
 async def login_user(
     user_data: UserLogin,
     response: Response,
-    request: Request,
     user_service: UserService = Depends(get_user_service),
 ):
-    csrf_token = request.headers.get("X-CSRF-Token") or get_csrf_token()
-    response.set_cookie(
-        key="csrf_token",
-        value=csrf_token,
-        httponly=False,
-        secure=False,  # True in production
-        samesite="lax",
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/",
-        domain=None,
-    )
-    tokens = await user_service.login(user_data.email, user_data.password)
-    response.set_cookie(
-        key="access_token",
-        value=tokens["access_token"],
-        httponly=True,
-        secure=False,  # True in production
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
-        domain=None,
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=tokens["refresh_token"],
-        httponly=True,
-        secure=False,  # True in production
-        samesite="lax",
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/",
-        domain=None,
-    )
-    return tokens
-
-@router.post("/refresh", response_model=Token)
-async def refresh_token(
-    response: Response,
-    request: Request,
-    refresh_payload: dict = Depends(get_refresh_token),
-    user_service: UserService = Depends(get_user_service),
-):
-    csrf_token = request.headers.get("X-CSRF-Token") or get_csrf_token()
-    response.set_cookie(
-        key="csrf_token",
-        value=csrf_token,
-        httponly=False,
-        secure=False,  # True in production
-        samesite="lax",
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/",
-        domain=None,
-    )
-    tokens = await user_service.refresh_access_token(refresh_payload)
-    response.set_cookie(
-        key="access_token",
-        value=tokens["access_token"],
-        httponly=True,
-        secure=False,  # True in production
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
-        domain=None,
-    )
-    return tokens
+    """Вход пользователя"""
+    try:
+        tokens = await user_service.login(user_data.email, user_data.password)
+        # Устанавливаем токены в cookies
+        authx.set_access_cookies(tokens["access_token"], response)
+        authx.set_refresh_cookies(tokens["refresh_token"], response)
+        return {
+            "message": "Вход выполнен успешно",
+            "tokens": tokens
+        }
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
 
 @router.post("/logout")
 async def logout(response: Response):
-    response.delete_cookie("access_token", path="/", domain=None)
-    response.delete_cookie("refresh_token", path="/", domain=None)
-    response.delete_cookie("csrf_token", path="/", domain=None)
-    return {"message": "Logged out successfully"}
+    """Выход пользователя"""
+    # Удаляем токены из cookies
+    authx.unset_cookies(response)
+    return {"message": "Успешный выход"}
+
+@router.post("/refresh")
+async def refresh_access_token(
+    response: Response,
+    refresh_token: RequestToken = Depends(authx.get_refresh_token_from_request)
+):
+    """Обновление access-токена по refresh-токену"""
+    try:
+        # Проверяем и декодируем refresh-токен (verify_type=False, т.к. это не access-токен)
+        payload: TokenPayload = authx.verify_token(token=refresh_token, verify_type=False)
+        user_id = payload.sub  # `sub` содержит идентификатор пользователя (UID)
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid refresh token payload")
+        # Создаем новый access-токен
+        new_access_token = authx.create_access_token(uid=user_id)
+        # Обновляем access-токен в cookies
+        authx.set_access_cookies(new_access_token, response)
+        return {
+            "message": "Токен обновлен успешно",
+            "access_token": new_access_token
+        }
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Invalid refresh token: {str(e)}")
+
+@router.get("/me")
+async def get_current_user_info(current_user=Depends(get_current_user)):
+    """Получение информации о текущем пользователе"""
+    return {
+        "user": current_user,
+        "message": "Authenticated successfully"
+    }
+
+@router.get("/protected")
+async def protected_route(current_user=Depends(get_current_user)):
+    """Пример защищенного маршрута"""
+    return {
+        "message": "Hello! This is a protected route.",
+        "user": current_user
+    }

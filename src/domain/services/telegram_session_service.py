@@ -9,7 +9,9 @@ from src.domain.entities.telegram_session import TelegramSession
 # store ongoing session data across requests
 _PENDING_SESSIONS: dict[str, dict] = {}
 
+
 logger = logging.getLogger(__name__)
+
 
 
 class TelegramSessionService:
@@ -101,5 +103,7 @@ class TelegramSessionService:
 
         result = await self.repo.create(session)
         _PENDING_SESSIONS.pop(session_name, None)
+
         logger.info("Session %s saved to DB", session_name)
+
         return result

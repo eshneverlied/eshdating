@@ -17,6 +17,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const step1Form = document.getElementById('tg-step1-form');
     const step2Form = document.getElementById('tg-step2-form');
     const step3Form = document.getElementById('tg-step3-form');
+    const statusMessage = document.getElementById('status-message');
+
+    const updateStatus = (msg) => {
+        if (statusMessage) statusMessage.textContent = msg;
+        console.log(msg);
+    };
 
     let isLogin = true;
 
@@ -132,6 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
             apiHash = document.getElementById('api-hash').value.trim();
 
             try {
+                updateStatus('Отправляем данные...');
                 const resp = await fetch('/api/v1/telegram/sessions/start', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -146,6 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 step1Form.classList.add('hidden');
                 step2Form.classList.remove('hidden');
+                updateStatus('Введите номер телефона');
 
             } catch (err) {
                 alert(err.message || 'Ошибка');
@@ -161,6 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const phone = document.getElementById('phone').value.trim();
 
             try {
+                updateStatus('Отправляем номер...');
                 const resp = await fetch('/api/v1/telegram/sessions/phone', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -175,6 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 step2Form.classList.add('hidden');
                 step3Form.classList.remove('hidden');
+                updateStatus('Введите код из SMS');
             } catch (err) {
                 alert(err.message || 'Ошибка');
             }
@@ -189,6 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = document.getElementById('session-password').value.trim() || null;
 
             try {
+                updateStatus('Подтверждаем код...');
                 const resp = await fetch('/api/v1/telegram/sessions/confirm', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -201,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 }
                 alert('Сессия создана');
+                updateStatus('Сессия успешно создана');
                 step3Form.reset();
                 step3Form.classList.add('hidden');
                 step1Form.classList.remove('hidden');

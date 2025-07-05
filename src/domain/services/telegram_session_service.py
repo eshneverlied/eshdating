@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import logging
 from pyrogram import Client
 
 from src.core.config import settings
@@ -7,6 +8,10 @@ from src.domain.entities.telegram_session import TelegramSession
 
 # store ongoing session data across requests
 _PENDING_SESSIONS: dict[str, dict] = {}
+
+
+logger = logging.getLogger(__name__)
+
 
 
 class TelegramSessionService:
@@ -21,6 +26,7 @@ class TelegramSessionService:
         api_hash: str,
     ) -> None:
         """Start session creation by storing initial parameters."""
+        logger.info("Initializing session %s for user %s", session_name, user_id)
 
         _PENDING_SESSIONS[session_name] = {
             "user_id": user_id,
@@ -35,6 +41,8 @@ class TelegramSessionService:
         if not data:
             raise ValueError("Session not initialized")
 
+        logger.info("Sending auth code for session %s to %s", session_name, phone)
+
         client = Client(
             session_name,
             api_id=data["api_id"],
@@ -48,6 +56,9 @@ class TelegramSessionService:
 
         data["phone"] = phone
         data["phone_code_hash"] = sent_code.phone_code_hash
+        logger.debug(
+            "phone_code_hash for %s: %s", session_name, sent_code.phone_code_hash
+        )
 
     async def confirm_code(
         self,
@@ -60,6 +71,8 @@ class TelegramSessionService:
         data = _PENDING_SESSIONS.get(session_name)
         if not data:
             raise ValueError("Session not initialized")
+
+        logger.info("Confirming OTP for session %s", session_name)
 
         client = Client(
             session_name,
@@ -77,6 +90,8 @@ class TelegramSessionService:
         )
         await client.disconnect()
 
+        logger.info("Telegram authorization completed for %s", session_name)
+
         session = TelegramSession(
             id=0,
             user_id=data["user_id"],
@@ -88,4 +103,7 @@ class TelegramSessionService:
 
         result = await self.repo.create(session)
         _PENDING_SESSIONS.pop(session_name, None)
+
+        logger.info("Session %s saved to DB", session_name)
+
         return result

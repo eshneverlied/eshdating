@@ -16,7 +16,10 @@
         <main class="dashboard-content">
             <div class="form-container">
                 <h2>Добавить Telegram сессию</h2>
-                <form id="telegram-form">
+
+
+                <form id="tg-step1-form">
+
                     <div class="input-wrapper">
                         <input type="text" id="session-name" placeholder="Session name" required>
                     </div>
@@ -26,9 +29,19 @@
                     <div class="input-wrapper">
                         <input type="text" id="api-hash" placeholder="API Hash" required>
                     </div>
+
+                    <button type="submit">Далее</button>
+                </form>
+
+                <form id="tg-step2-form" class="hidden">
                     <div class="input-wrapper">
                         <input type="text" id="phone" placeholder="Phone" required>
                     </div>
+                    <button type="submit">Получить код</button>
+                </form>
+
+                <form id="tg-step3-form" class="hidden">
+
                     <div class="input-wrapper">
                         <input type="text" id="otp" placeholder="OTP" required>
                     </div>

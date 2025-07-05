@@ -16,3 +16,7 @@ A scalable backend for a dating platform using FastAPI, PostgreSQL, and AuthX.
 
 - POST `/api/v1/auth/register`: Register a new user.
 - POST `/api/v1/auth/login`: Login and get JWT token.
+- POST `/api/v1/telegram/sessions/start`: Begin creating a Telegram session
+- POST `/api/v1/telegram/sessions/phone`: Provide phone number and request OTP
+- POST `/api/v1/telegram/sessions/confirm`: Submit OTP and optional password
+- GET `/telegram/add`: Web form for Telegram session setup

@@ -13,9 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
 
-    const tgModal = document.getElementById('telegram-modal');
-    const addTgBtn = document.getElementById('add-telegram-btn');
-    const tgCloseBtn = tgModal ? tgModal.querySelector('.close-btn') : null;
     const tgForm = document.getElementById('telegram-form');
 
     let isLogin = true;
@@ -118,13 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    if (addTgBtn) {
-        addTgBtn.onclick = () => showModal(tgModal);
-    }
-
-    if (tgCloseBtn) {
-        tgCloseBtn.onclick = () => hideModal(tgModal);
-    }
 
     if (tgForm) {
         tgForm.onsubmit = async (e) => {
@@ -150,7 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (response.ok) {
                     alert('Сессия создана');
                     tgForm.reset();
-                    hideModal(tgModal);
                 } else {
                     const err = await response.json();
                     alert(err.detail || 'Ошибка');

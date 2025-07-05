@@ -1,6 +1,9 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+from src.core.logging import setup_logging
+setup_logging()
+
 from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates

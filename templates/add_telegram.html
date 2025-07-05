@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавить Telegram сессию</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Dating Portal</h1>
+            <div class="dashboard-actions">
+                <a href="/dashboard"><button>Назад</button></a>
+            </div>
+        </header>
+        <main class="dashboard-content">
+            <div class="form-container">
+                <h2>Добавить Telegram сессию</h2>
+
+                <form id="tg-step1-form">
+                    <div class="input-wrapper">
+                        <input type="text" id="session-name" placeholder="Session name" required>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" id="api-id" placeholder="API ID" required>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="text" id="api-hash" placeholder="API Hash" required>
+                    </div>
+                    <button type="submit">Далее</button>
+                </form>
+
+                <form id="tg-step2-form" class="hidden">
+                    <div class="input-wrapper">
+                        <input type="text" id="phone" placeholder="Phone" required>
+                    </div>
+                    <button type="submit">Получить код</button>
+                </form>
+
+                <form id="tg-step3-form" class="hidden">
+                    <div class="input-wrapper">
+                        <input type="text" id="otp" placeholder="OTP" required>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="password" id="session-password" placeholder="Password (если есть)">
+                    </div>
+                    <button type="submit" id="submit-telegram">Сохранить</button>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script src="/static/js/main.js" defer></script>
+</body>
+</html>

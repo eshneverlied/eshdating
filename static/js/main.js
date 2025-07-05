@@ -13,10 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
 
-    const tgModal = document.getElementById('telegram-modal');
-    const addTgBtn = document.getElementById('add-telegram-btn');
-    const tgCloseBtn = tgModal ? tgModal.querySelector('.close-btn') : null;
-    const tgForm = document.getElementById('telegram-form');
+    const step1Form = document.getElementById('tg-step1-form');
+    const step2Form = document.getElementById('tg-step2-form');
+    const step3Form = document.getElementById('tg-step3-form');
 
     let isLogin = true;
 
@@ -118,43 +117,85 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    if (addTgBtn) {
-        addTgBtn.onclick = () => showModal(tgModal);
-    }
 
-    if (tgCloseBtn) {
-        tgCloseBtn.onclick = () => hideModal(tgModal);
-    }
+    let sessionName = '';
+    let apiId = 0;
+    let apiHash = '';
 
-    if (tgForm) {
-        tgForm.onsubmit = async (e) => {
+    if (step1Form) {
+        step1Form.onsubmit = async (e) => {
             e.preventDefault();
 
-            const payload = {
-                session_name: document.getElementById('session-name').value.trim(),
-                api_id: parseInt(document.getElementById('api-id').value.trim(), 10),
-                api_hash: document.getElementById('api-hash').value.trim(),
-                phone: document.getElementById('phone').value.trim(),
-                otp: document.getElementById('otp').value.trim(),
-                password: document.getElementById('session-password').value.trim() || null,
-            };
+            sessionName = document.getElementById('session-name').value.trim();
+            apiId = parseInt(document.getElementById('api-id').value.trim(), 10);
+            apiHash = document.getElementById('api-hash').value.trim();
 
             try {
-                const response = await fetch('/api/v1/telegram/sessions', {
+                const resp = await fetch('/api/v1/telegram/sessions/start', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({ session_name: sessionName, api_id: apiId, api_hash: apiHash })
                 });
-
-                if (response.ok) {
-                    alert('Сессия создана');
-                    tgForm.reset();
-                    hideModal(tgModal);
-                } else {
-                    const err = await response.json();
-                    alert(err.detail || 'Ошибка');
+                if (!resp.ok) {
+                    const err = await resp.json();
+                    throw new Error(err.detail || 'Ошибка');
                 }
+                step1Form.classList.add('hidden');
+                step2Form.classList.remove('hidden');
+            } catch (err) {
+                alert(err.message || 'Ошибка');
+            }
+        };
+    }
+
+    if (step2Form) {
+        step2Form.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const phone = document.getElementById('phone').value.trim();
+
+            try {
+                const resp = await fetch('/api/v1/telegram/sessions/phone', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ session_name: sessionName, phone })
+                });
+                if (!resp.ok) {
+                    const err = await resp.json();
+                    throw new Error(err.detail || 'Ошибка');
+                }
+                step2Form.classList.add('hidden');
+                step3Form.classList.remove('hidden');
+            } catch (err) {
+                alert(err.message || 'Ошибка');
+            }
+        };
+    }
+
+    if (step3Form) {
+        step3Form.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const otp = document.getElementById('otp').value.trim();
+            const password = document.getElementById('session-password').value.trim() || null;
+
+            try {
+                const resp = await fetch('/api/v1/telegram/sessions/confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ session_name: sessionName, otp, password })
+                });
+                if (!resp.ok) {
+                    const err = await resp.json();
+                    throw new Error(err.detail || 'Ошибка');
+                }
+                alert('Сессия создана');
+                step3Form.reset();
+                step3Form.classList.add('hidden');
+                step1Form.classList.remove('hidden');
             } catch (err) {
                 alert(err.message || 'Ошибка');
             }

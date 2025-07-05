@@ -5,9 +5,13 @@
 
 from fastapi import Request, HTTPException, Depends
 from src.infrastructure.database.repositories.user_repository import SQLAlchemyUserRepository
+from src.infrastructure.database.repositories.telegram_session_repository import (
+    SQLAlchemyTelegramSessionRepository,
+)
 from src.infrastructure.database.session import get_db_session
 from passlib.context import CryptContext
 from src.domain.services.user_service import UserService
+from src.domain.services.telegram_session_service import TelegramSessionService
 from authx import TokenPayload
 from src.core.auth import authx  # Импортируем уже настроенный AuthX
 
@@ -22,6 +26,15 @@ def get_user_service(session=Depends(get_db_session)) -> UserService:
         SQLAlchemyUserRepository(session),
         authx=authx,
         pwd_context=pwd_context
+    )
+
+
+def get_telegram_session_service(
+    session=Depends(get_db_session),
+) -> TelegramSessionService:
+    """Создаем сервис телеграм-сессий."""
+    return TelegramSessionService(
+        SQLAlchemyTelegramSessionRepository(session)
     )
 
 async def get_current_user(

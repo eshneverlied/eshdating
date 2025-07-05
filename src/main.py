@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.core.config import settings
 from src.core.dependencies import get_current_user
 from src.presentation.api.v1.auth import router as auth_router
+from src.presentation.api.v1.telegram import router as telegram_router
 from src.core.auth import authx
 
 # Создаем приложение
@@ -36,6 +37,7 @@ templates = Jinja2Templates(directory="templates")
 
 # Подключаем роутеры
 app.include_router(auth_router)
+app.include_router(telegram_router)
 
 @app.get("/")
 async def index(request: Request):

@@ -79,7 +79,7 @@
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
-from src.infrastructure.database.models.user import Base
+from src.infrastructure.database.models import Base
 from src.core.config import settings
 
 config = context.config

@@ -1,10 +1,10 @@
 console.log("main.js загружен");
 
 document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById('auth-modal');
+    const authModal = document.getElementById('auth-modal');
     const loginBtn = document.getElementById('login-btn');
     const registerBtn = document.getElementById('register-btn');
-    const closeBtn = document.querySelector('.close-btn');
+    const authCloseBtn = authModal ? authModal.querySelector('.close-btn') : null;
     const authForm = document.getElementById('auth-form');
     const submitBtn = document.getElementById('submit-auth');
     const formTitle = document.getElementById('form-title');
@@ -13,16 +13,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
 
+    const tgModal = document.getElementById('telegram-modal');
+    const addTgBtn = document.getElementById('add-telegram-btn');
+    const tgCloseBtn = tgModal ? tgModal.querySelector('.close-btn') : null;
+    const tgForm = document.getElementById('telegram-form');
+
     let isLogin = true;
 
-    function showModal() {
-        modal.classList.remove("hidden");
-        modal.classList.add("show");
+    function showModal(element) {
+        if (element) {
+            element.classList.remove("hidden");
+            element.classList.add("show");
+        }
     }
 
-    function hideModal() {
-        modal.classList.remove("show");
-        modal.classList.add("hidden");
+    function hideModal(element) {
+        if (element) {
+            element.classList.remove("show");
+            element.classList.add("hidden");
+        }
     }
 
     function bindSwitch() {
@@ -52,50 +61,103 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    loginBtn.onclick = () => {
-        isLogin = true;
-        formTitle.textContent = "Вход";
-        submitBtn.textContent = "Войти";
-        switchAuth.innerHTML = `Еще нет аккаунта? <a href="#" id="switch-to-register">Зарегистрироваться</a>`;
-        showModal();
-        bindSwitch();
-    };
+    if (loginBtn) {
+        loginBtn.onclick = () => {
+            isLogin = true;
+            formTitle.textContent = "Вход";
+            submitBtn.textContent = "Войти";
+            switchAuth.innerHTML = `Еще нет аккаунта? <a href="#" id="switch-to-register">Зарегистрироваться</a>`;
+            showModal(authModal);
+            bindSwitch();
+        };
+    }
 
-    registerBtn.onclick = () => {
-        isLogin = false;
-        formTitle.textContent = "Регистрация";
-        submitBtn.textContent = "Зарегистрироваться";
-        switchAuth.innerHTML = `Уже есть аккаунт? <a href="#" id="switch-to-login">Войти</a>`;
-        showModal();
-        bindSwitch();
-    };
+    if (registerBtn) {
+        registerBtn.onclick = () => {
+            isLogin = false;
+            formTitle.textContent = "Регистрация";
+            submitBtn.textContent = "Зарегистрироваться";
+            switchAuth.innerHTML = `Уже есть аккаунт? <a href="#" id="switch-to-login">Войти</a>`;
+            showModal(authModal);
+            bindSwitch();
+        };
+    }
 
-    closeBtn.onclick = () => hideModal();
+    if (authCloseBtn) {
+        authCloseBtn.onclick = () => hideModal(authModal);
+    }
 
-    togglePassword.onclick = () => {
-        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
-        passwordInput.setAttribute("type", type);
-    };
+    if (togglePassword) {
+        togglePassword.onclick = () => {
+            const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+            passwordInput.setAttribute("type", type);
+        };
+    }
 
-    authForm.onsubmit = async (e) => {
-        e.preventDefault();
+    if (authForm) {
+        authForm.onsubmit = async (e) => {
+            e.preventDefault();
 
-        const email = emailInput.value.trim();
-        const password = passwordInput.value.trim();
-        const url = isLogin ? "/api/v1/auth/login" : "/api/v1/auth/register";
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            const url = isLogin ? "/api/v1/auth/login" : "/api/v1/auth/register";
 
-        const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ email, password }),
-        });
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ email, password }),
+            });
 
-        if (response.ok) {
-            window.location.href = "/dashboard";
-        } else {
-            const err = await response.json();
-            alert(err.detail || "Ошибка");
-        }
-    };
+            if (response.ok) {
+                window.location.href = "/dashboard";
+            } else {
+                const err = await response.json();
+                alert(err.detail || "Ошибка");
+            }
+        };
+    }
+
+    if (addTgBtn) {
+        addTgBtn.onclick = () => showModal(tgModal);
+    }
+
+    if (tgCloseBtn) {
+        tgCloseBtn.onclick = () => hideModal(tgModal);
+    }
+
+    if (tgForm) {
+        tgForm.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const payload = {
+                session_name: document.getElementById('session-name').value.trim(),
+                api_id: parseInt(document.getElementById('api-id').value.trim(), 10),
+                api_hash: document.getElementById('api-hash').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                otp: document.getElementById('otp').value.trim(),
+                password: document.getElementById('session-password').value.trim() || null,
+            };
+
+            try {
+                const response = await fetch('/api/v1/telegram/sessions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(payload),
+                });
+
+                if (response.ok) {
+                    alert('Сессия создана');
+                    tgForm.reset();
+                    hideModal(tgModal);
+                } else {
+                    const err = await response.json();
+                    alert(err.detail || 'Ошибка');
+                }
+            } catch (err) {
+                alert(err.message || 'Ошибка');
+            }
+        };
+    }
 });

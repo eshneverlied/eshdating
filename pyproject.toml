@@ -17,4 +17,6 @@ dependencies = [
     "python-jose[cryptography]>=3.4.0",
     "sqlalchemy>=2.0.40",
     "uvicorn>=0.34.1",
+    "pyrogram>=2.0",
+    "tgcrypto>=1.2.5",
 ]

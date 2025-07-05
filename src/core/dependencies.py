@@ -32,7 +32,7 @@ def get_user_service(session=Depends(get_db_session)) -> UserService:
 def get_telegram_session_service(
     session=Depends(get_db_session),
 ) -> TelegramSessionService:
-    """Создаем сервис телеграм-сессий."""
+    """Return a :class:`TelegramSessionService` bound to the request DB session."""
     return TelegramSessionService(
         SQLAlchemyTelegramSessionRepository(session)
     )

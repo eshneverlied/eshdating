@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
 
+
     const step1Form = document.getElementById('tg-step1-form');
     const step2Form = document.getElementById('tg-step2-form');
     const step3Form = document.getElementById('tg-step3-form');
@@ -136,18 +137,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({ session_name: sessionName, api_id: apiId, api_hash: apiHash })
+
                 });
                 if (!resp.ok) {
                     const err = await resp.json();
                     throw new Error(err.detail || 'Ошибка');
                 }
+
                 step1Form.classList.add('hidden');
                 step2Form.classList.remove('hidden');
+
             } catch (err) {
                 alert(err.message || 'Ошибка');
             }
         };
     }
+
 
     if (step2Form) {
         step2Form.onsubmit = async (e) => {
@@ -161,10 +166,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({ session_name: sessionName, phone })
+
                 });
                 if (!resp.ok) {
                     const err = await resp.json();
                     throw new Error(err.detail || 'Ошибка');
+
                 }
                 step2Form.classList.add('hidden');
                 step3Form.classList.remove('hidden');
@@ -191,6 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!resp.ok) {
                     const err = await resp.json();
                     throw new Error(err.detail || 'Ошибка');
+
                 }
                 alert('Сессия создана');
                 step3Form.reset();

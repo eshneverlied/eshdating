@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const step2Form = document.getElementById('tg-step2-form');
     const step3Form = document.getElementById('tg-step3-form');
 
-
     let isLogin = true;
 
     function showModal(element) {
@@ -120,7 +119,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-
     let sessionName = '';
     let apiId = 0;
     let apiHash = '';
@@ -139,13 +137,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({ session_name: sessionName, api_id: apiId, api_hash: apiHash })
+
                 });
                 if (!resp.ok) {
                     const err = await resp.json();
                     throw new Error(err.detail || 'Ошибка');
                 }
+
                 step1Form.classList.add('hidden');
                 step2Form.classList.remove('hidden');
+
             } catch (err) {
                 alert(err.message || 'Ошибка');
             }
@@ -170,6 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!resp.ok) {
                     const err = await resp.json();
                     throw new Error(err.detail || 'Ошибка');
+
                 }
                 step2Form.classList.add('hidden');
                 step3Form.classList.remove('hidden');
@@ -178,7 +180,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
     }
-
 
     if (step3Form) {
         step3Form.onsubmit = async (e) => {

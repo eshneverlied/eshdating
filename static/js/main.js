@@ -13,9 +13,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
 
+
     const step1Form = document.getElementById('tg-step1-form');
     const step2Form = document.getElementById('tg-step2-form');
     const step3Form = document.getElementById('tg-step3-form');
+
 
     let isLogin = true;
 
@@ -118,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
+
     let sessionName = '';
     let apiId = 0;
     let apiHash = '';
@@ -149,6 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
+
     if (step2Form) {
         step2Form.onsubmit = async (e) => {
             e.preventDefault();
@@ -161,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({ session_name: sessionName, phone })
+
                 });
                 if (!resp.ok) {
                     const err = await resp.json();
@@ -173,6 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
     }
+
 
     if (step3Form) {
         step3Form.onsubmit = async (e) => {
@@ -191,6 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!resp.ok) {
                     const err = await resp.json();
                     throw new Error(err.detail || 'Ошибка');
+
                 }
                 alert('Сессия создана');
                 step3Form.reset();

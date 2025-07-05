@@ -5,12 +5,13 @@ from pyrogram import Client
 from src.core.config import settings
 from src.domain.entities.telegram_session import TelegramSession
 
+# store ongoing session data across requests
+_PENDING_SESSIONS: dict[str, dict] = {}
+
 
 class TelegramSessionService:
     def __init__(self, repository):
         self.repo = repository
-        # Temporary store for ongoing authorizations
-        self._pending: dict[str, dict] = {}
 
     async def add_session(
         self,
@@ -21,7 +22,7 @@ class TelegramSessionService:
     ) -> None:
         """Start session creation by storing initial parameters."""
 
-        self._pending[session_name] = {
+        _PENDING_SESSIONS[session_name] = {
             "user_id": user_id,
             "api_id": api_id,
             "api_hash": api_hash,
@@ -30,7 +31,7 @@ class TelegramSessionService:
     async def provide_phone(self, session_name: str, phone: str) -> None:
         """Send authentication code to the given phone number."""
 
-        data = self._pending.get(session_name)
+        data = _PENDING_SESSIONS.get(session_name)
         if not data:
             raise ValueError("Session not initialized")
 
@@ -56,7 +57,7 @@ class TelegramSessionService:
     ) -> TelegramSession:
         """Finalize authorization with the received code and optional password."""
 
-        data = self._pending.get(session_name)
+        data = _PENDING_SESSIONS.get(session_name)
         if not data:
             raise ValueError("Session not initialized")
 
@@ -86,6 +87,5 @@ class TelegramSessionService:
         )
 
         result = await self.repo.create(session)
-        self._pending.pop(session_name, None)
+        _PENDING_SESSIONS.pop(session_name, None)
         return result
-

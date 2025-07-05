@@ -47,6 +47,11 @@ async def index(request: Request):
 async def dashboard(request: Request, user=Depends(get_current_user)):
     return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
 
+
+@app.get("/telegram/add")
+async def add_telegram_page(request: Request, user=Depends(get_current_user)):
+    return templates.TemplateResponse("add_telegram.html", {"request": request, "user": user})
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}

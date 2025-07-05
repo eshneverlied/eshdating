@@ -13,9 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
 
-    const tgModal = document.getElementById('telegram-modal');
-    const addTgBtn = document.getElementById('add-telegram-btn');
-    const tgCloseBtn = tgModal ? tgModal.querySelector('.close-btn') : null;
     const tgForm = document.getElementById('telegram-form');
 
     let isLogin = true;
@@ -118,39 +115,53 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    if (addTgBtn) {
-        addTgBtn.onclick = () => showModal(tgModal);
-    }
-
-    if (tgCloseBtn) {
-        tgCloseBtn.onclick = () => hideModal(tgModal);
-    }
 
     if (tgForm) {
         tgForm.onsubmit = async (e) => {
             e.preventDefault();
 
-            const payload = {
-                session_name: document.getElementById('session-name').value.trim(),
-                api_id: parseInt(document.getElementById('api-id').value.trim(), 10),
-                api_hash: document.getElementById('api-hash').value.trim(),
-                phone: document.getElementById('phone').value.trim(),
-                otp: document.getElementById('otp').value.trim(),
-                password: document.getElementById('session-password').value.trim() || null,
-            };
+            const sessionName = document.getElementById('session-name').value.trim();
+            const apiId = parseInt(document.getElementById('api-id').value.trim(), 10);
+            const apiHash = document.getElementById('api-hash').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const otp = document.getElementById('otp').value.trim();
+            const password = document.getElementById('session-password').value.trim() || null;
+
+            const base = '/api/v1/telegram/sessions';
 
             try {
-                const response = await fetch('/api/v1/telegram/sessions', {
+                let response = await fetch(`${base}/start`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({ session_name: sessionName, api_id: apiId, api_hash: apiHash })
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Ошибка инициализации');
+                }
+
+                response = await fetch(`${base}/phone`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ session_name: sessionName, phone })
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Ошибка отправки телефона');
+                }
+
+                response = await fetch(`${base}/confirm`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ session_name: sessionName, otp, password })
                 });
 
                 if (response.ok) {
                     alert('Сессия создана');
                     tgForm.reset();
-                    hideModal(tgModal);
                 } else {
                     const err = await response.json();
                     alert(err.detail || 'Ошибка');
